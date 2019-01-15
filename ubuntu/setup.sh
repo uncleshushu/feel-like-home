@@ -10,10 +10,35 @@ CONFIG_DIR_STR="~/.config/feel-like-home"
 mkdir -p "$CONFIG_DIR"
 cp -r "$PWD"/* "$CONFIG_DIR" 
 
+# check if $FILE exists and append $APPEND_STR to it
+check_append() {
+    FILE=$1
+    APPEND_STR=$2
+    if [ ! -f "$FILE" ]; then
+        echo "$APPEND_STR" | sudo tee -a "$FILE" >> /dev/null
+    elif grep "^$APPEND_STR" "$FILE" >> /dev/null; [ $? -eq 1 ]; then
+        echo "$APPEND_STR" | sudo tee -a "$FILE" >> /dev/null
+    fi
+    }
+
 # Setup pip mirrors
 
 # Setup apt
-	
+# append proxy settings to /etc/apt/apt.conf.d/01proxy
+check_append_apt_proxy() {
+    FILE="/etc/apt/apt.conf.d/01proxy"
+    SITE=$1
+    HTTP_PROXY="http://127.0.0.1:8080"
+    APT_HTTP_PROXY="Acquire::http::Proxy::$SITE \"$HTTP_PROXY\";"
+    APT_HTTPS_PROXY="Acquire::https::Proxy::$SITE \"$HTTP_PROXY\";"
+    check_append "$FILE" "$APT_HTTP_PROXY"
+    check_append "$FILE" "$APT_HTTPS_PROXY"
+    }
+
+check_append_apt_proxy "download.docker.com"
+check_append_apt_proxy "ppa.launchpad.net"
+
+sudo add-apt-repository ppa:longsleep/golang-backports -y
 
 
 # Install packages
@@ -24,6 +49,7 @@ sudo pip3 install -U pygments cppman ipython icdiff \
 sudo apt update
 sudo apt upgrade -y
 sudo apt install build-essential clang cmake git \
+        golang-go \
 	emacs \
 	aria2 \
 	shadowsocks-libev \
@@ -31,16 +57,6 @@ sudo apt install build-essential clang cmake git \
 	chromium-browser \
 	-y
 
-# check if $FILE exists and append $APPEND_STR to it
-check_append() {
-	FILE=$1
-	APPEND_STR=$2
-	if [ ! -f "$FILE" ]; then
-		echo "$APPEND_STR" >> "$FILE"
-	elif grep "^$APPEND_STR" "$FILE" >> /dev/null; [ $? -eq 1 ]; then
-		echo "$APPEND_STR" >> "$FILE"
-	fi
-	}
 
 # Basic vim configurations
 FILE=$HOME/.vimrc
