@@ -44,18 +44,19 @@ sudo add-apt-repository ppa:longsleep/golang-backports -y
 # Install packages
 sudo pip3 install -U pip
 sudo pip3 install -U pygments cppman ipython icdiff \
-	flake8 bandit mypy
+                     flake8 bandit mypy pydocstyle  \
+                     isort yapf
 
 sudo apt update
 sudo apt upgrade -y
 sudo apt install build-essential clang cmake git \
-        golang-go \
-	emacs \
-	aria2 \
-	shadowsocks-libev \
-	tree tldr tmux \
-	chromium-browser \
-	-y
+                 golang-go \
+                 emacs \
+                 aria2 \
+                 shadowsocks-libev \
+                 tree tldr tmux \
+                 chromium-browser \
+                 -y
 
 
 # Basic vim configurations
@@ -63,9 +64,9 @@ FILE=$HOME/.vimrc
 VIMRC_APPEND="source $CONFIG_DIR_STR/vimrc_inc.vim"
 check_append "$FILE" "$VIMRC_APPEND"
 if dpkg -s neovim >> /dev/null; then
-	FILE=$HOME/.config/nvim/init.vim
-	INIT_VIM_APPEND="source ~/.vimrc"
-	check_append "$FILE" "$INIT_VIM_APPEND"
+    FILE=$HOME/.config/nvim/init.vim
+    INIT_VIM_APPEND="source ~/.vimrc"
+    check_append "$FILE" "$INIT_VIM_APPEND"
 fi
 
 # append 'bash_init.sh' to '.bashrc'
