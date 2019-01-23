@@ -2,6 +2,8 @@
 
 # Setup everything to make you feel like home.
 
+VERSION_CODENAME="$(. /etc/os-release && echo "$VERSION_CODENAME")"
+
 # create directory and copy files
 CONFIG_DIR=~/.config/feel-like-home
 # shellcheck disable=SC2088
@@ -14,11 +16,14 @@ cp -r "$PWD"/* "$CONFIG_DIR"
 check_append() {
     FILE=$1
     APPEND_STR=$2
-    if [ ! -f "$FILE" ]; then
-        echo "$APPEND_STR" | sudo tee -a "$FILE" >> /dev/null
-    elif grep "^$APPEND_STR" "$FILE" >> /dev/null; [ $? -eq 1 ]; then
+    if ! grep -Fxq "$APPEND_STR" "$FILE" 1> /dev/null 2>&1; then
         echo "$APPEND_STR" | sudo tee -a "$FILE" >> /dev/null
     fi
+    # if [ ! -f "$FILE" ]; then
+    #     echo "$APPEND_STR" | sudo tee -a "$FILE" >> /dev/null
+    # elif grep "^$APPEND_STR" "$FILE" >> /dev/null; [ $? -eq 1 ]; then
+    #     echo "$APPEND_STR" | sudo tee -a "$FILE" >> /dev/null
+    # fi
     }
 
 # Setup pip mirrors
@@ -38,8 +43,32 @@ check_append_apt_proxy() {
 check_append_apt_proxy "download.docker.com"
 check_append_apt_proxy "ppa.launchpad.net"
 
-sudo add-apt-repository ppa:longsleep/golang-backports -y
+# golang
+if [ ! -f "/etc/apt/sources.list.d/longsleep-ubuntu-golang-backports-$VERSION_CODENAME.list" ]; then
+    sudo add-apt-repository ppa:longsleep/golang-backports -y
+fi
 
+# uget
+if [ ! -f "/etc/apt/sources.list.d/uget-team-ubuntu-ppa-$VERSION_CODENAME.list" ]; then
+    sudo add-apt-repository ppa:uget-team/ppa -y
+fi
+
+# spotify
+SPOTIFY_LIST="/etc/apt/sources.list.d/spotify.list"
+SPOTIFY_REPO="deb http://repository.spotify.com stable non-free" 
+if [ ! -f "$SPOTIFY_LIST" ]; then
+    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 931FF8E79F0876134EDDBDCCA87FF9DF48BF1C90
+fi
+check_append "$SPOTIFY_LIST" "$SPOTIFY_REPO"
+check_append_apt_proxy "repository.spotify.com"
+
+# vscode
+VSCODE_LIST="/etc/apt/sources.list.d/vscode.list"
+VSCODE_REPO="deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main"
+if [ ! -f "$VSCODE_LIST" ]; then
+    curl -sS https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/microsoft.gpg > /dev/null
+fi
+check_append "$VSCODE_LIST" "$VSCODE_REPO"
 
 # Install packages
 sudo pip3 install -U pip
@@ -51,11 +80,11 @@ sudo apt update
 sudo apt upgrade -y
 sudo apt install build-essential clang cmake git \
                  golang-go \
-                 emacs \
-                 aria2 \
+                 emacs code \
+                 aria2 uget uget-integrator \
                  shadowsocks-libev \
                  tree tldr tmux \
-                 chromium-browser \
+                 chromium-browser spotify-client \
                  -y
 
 
