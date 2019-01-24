@@ -88,6 +88,18 @@ sudo apt install build-essential clang cmake git \
                  -y
 
 
+# set docker image mirror
+if [ ! -f /etc/docker/daemon.json ]; then
+    sudo tee /etc/docker/daemon.json > /dev/null <<-EOF
+	{
+	    "registry-mirrors": [
+	    "https://registry.docker-cn.com"
+	    ]
+	}
+	EOF
+    sudo systemctl reload docker.service
+fi
+
 # Basic vim configurations
 FILE=$HOME/.vimrc
 VIMRC_APPEND="source $CONFIG_DIR_STR/vimrc_inc.vim"
