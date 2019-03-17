@@ -12,4 +12,5 @@ function ccat() {
     fi
 }
 
-
+# environment variables
+export PIPENV_PYPI_MIRROR="https://mirrors.ustc.edu.cn/pypi/web/simple"
